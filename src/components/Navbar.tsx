@@ -47,15 +47,15 @@ export const Navbar = () => {
   );
 
   return (
-    <nav className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
+    <nav className="sticky top-0 z-50 bg-background border-b border-border shadow-sm figtree-text">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link
             to="/"
-            className="text-2xl font-bold text-primary hover:text-primary/80 transition"
+            className="text-2xl font-bold text-primary hover:text-primary/80 transition flex items-center space-x-2"
           >
-            NagarMithra
+            <img src="logo.png" className="w-10 h-10" />NagarMithra
           </Link>
 
           {/* Desktop Menu */}

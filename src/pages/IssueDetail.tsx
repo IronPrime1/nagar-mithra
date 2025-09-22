@@ -256,7 +256,7 @@ export default function IssueDetail() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="figtree-text container mx-auto px-4 py-8 max-w-4xl">
       <Button
         variant="ghost"
         onClick={() => navigate('/')}
