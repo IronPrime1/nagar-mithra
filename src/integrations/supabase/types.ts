@@ -14,7 +14,155 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      issue_comments: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          issue_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          issue_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          issue_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issue_comments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issue_comments_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "issues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      issue_upvotes: {
+        Row: {
+          created_at: string
+          id: string
+          issue_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          issue_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          issue_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issue_upvotes_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "issues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issue_upvotes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      issues: {
+        Row: {
+          comments_count: number | null
+          created_at: string
+          created_by: string
+          id: string
+          images: string[] | null
+          location_address: string | null
+          location_lat: number | null
+          location_lng: number | null
+          title: string
+          upvotes_count: number | null
+        }
+        Insert: {
+          comments_count?: number | null
+          created_at?: string
+          created_by: string
+          id?: string
+          images?: string[] | null
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          title: string
+          upvotes_count?: number | null
+        }
+        Update: {
+          comments_count?: number | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          images?: string[] | null
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          title?: string
+          upvotes_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issues_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string
+          id: string
+          language: string | null
+          role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email: string
+          id: string
+          language?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          id?: string
+          language?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +171,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "user" | "official"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +298,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["user", "official"],
+    },
   },
 } as const
