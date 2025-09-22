@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, MapPin } from 'lucide-react';
+import { ArrowUp, MessageCircle, MapPin } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -122,7 +122,7 @@ export const IssueCard = ({ issue, userUpvoted, onUpvoteChange, onClick }: Issue
             disabled={isUpvoting}
             className="flex items-center space-x-1"
           >
-            <Heart className={`w-4 h-4 ${userUpvoted ? 'fill-current' : ''}`} />
+            <ArrowUp className={`w-4 h-4 ${userUpvoted ? 'fill-current' : ''}`} />
             <span>{issue.upvotes_count}</span>
           </Button>
           
