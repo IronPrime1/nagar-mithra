@@ -212,7 +212,6 @@ export default function PostIssue() {
                   type="file"
                   accept="image/*"
                   multiple
-                  capture="environment"
                   onChange={handleFileSelect}
                   className="hidden"
                   id="image-upload"
