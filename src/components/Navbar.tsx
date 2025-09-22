@@ -21,36 +21,56 @@ export const Navbar = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const MenuLink = ({
+    to,
+    icon: Icon,
+    label,
+    onClick,
+  }: {
+    to: string;
+    icon: React.ElementType;
+    label: string;
+    onClick?: () => void;
+  }) => (
+    <Button
+      variant={isActive(to) ? 'default' : 'ghost'}
+      size="sm"
+      asChild
+      className="justify-start w-full md:w-auto"
+      onClick={onClick}
+    >
+      <Link to={to}>
+        <Icon className="w-4 h-4 mr-2" />
+        {label}
+      </Link>
+    </Button>
+  );
+
   return (
-    <nav className="sticky top-0 z-50 bg-background border-b border-border">
+    <nav className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="text-xl font-bold text-primary">
+          <Link
+            to="/"
+            className="text-2xl font-bold text-primary hover:text-primary/80 transition"
+          >
             NagarMithra
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-2">
-            <Button variant={isActive('/') ? 'default' : 'ghost'} size="sm" asChild>
-              <Link to="/">
-                <Home className="w-4 h-4 mr-2" />
-                {t('home')}
-              </Link>
-            </Button>
+          <div className="hidden md:flex items-center space-x-4">
+            <MenuLink to="/" icon={Home} label={t('home')} />
+            <MenuLink to="/post" icon={Plus} label={t('postIssue')} />
 
-            <Button variant={isActive('/post') ? 'default' : 'ghost'} size="sm" asChild>
-              <Link to="/post">
-                <Plus className="w-4 h-4 mr-2" />
-                {t('postIssue')}
-              </Link>
-            </Button>
-
+            {/* Profile Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <User className="w-4 h-4 mr-2" />
-                  {profile?.display_name || profile?.email || 'User'}
+                <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                  <User className="w-4 h-4" />
+                  <span className="truncate max-w-[120px]">
+                    {profile?.display_name || profile?.email || 'User'}
+                  </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -82,26 +102,30 @@ export const Navbar = () => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-2 space-y-2 flex flex-col">
-            <Button variant={isActive('/') ? 'default' : 'ghost'} size="sm" asChild className="w-full">
-              <Link to="/" onClick={() => setMobileMenuOpen(false)}>
-                <Home className="w-4 h-4 mr-2" />
-                {t('home')}
-              </Link>
-            </Button>
+          <div className="md:hidden mt-2 flex flex-col space-y-2 border-t border-border pt-2">
+            <MenuLink
+              to="/"
+              icon={Home}
+              label={t('home')}
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <MenuLink
+              to="/post"
+              icon={Plus}
+              label={t('postIssue')}
+              onClick={() => setMobileMenuOpen(false)}
+            />
 
-            <Button variant={isActive('/post') ? 'default' : 'ghost'} size="sm" asChild className="w-full">
-              <Link to="/post" onClick={() => setMobileMenuOpen(false)}>
-                <Plus className="w-4 h-4 mr-2" />
-                {t('postIssue')}
-              </Link>
-            </Button>
-
+            {/* Mobile Profile Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="w-full text-left">
-                  <User className="w-4 h-4 mr-2" />
-                  {profile?.display_name || profile?.email || 'User'}
+                <Button variant="ghost" size="sm" className="flex items-center justify-between w-full">
+                  <div className="flex items-center space-x-2">
+                    <User className="w-4 h-4" />
+                    <span className="truncate max-w-[180px]">
+                      {profile?.display_name || profile?.email || 'User'}
+                    </span>
+                  </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
