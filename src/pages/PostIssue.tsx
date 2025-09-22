@@ -1,24 +1,26 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Upload, X } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MapPin, Upload, X } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function PostIssue() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-  const [title, setTitle] = useState('');
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+  const [title, setTitle] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState<
+    { file: File; preview: string }[]
+  >([]);
   const [location, setLocation] = useState<{
     lat: number;
     lng: number;
@@ -29,12 +31,12 @@ export default function PostIssue() {
 
   const getCurrentLocation = () => {
     setGettingLocation(true);
-    
+
     if (!navigator.geolocation) {
       toast({
-        title: t('error'),
-        description: 'Geolocation is not supported by this browser.',
-        variant: 'destructive'
+        title: t("error"),
+        description: "Geolocation is not supported by this browser.",
+        variant: "destructive",
       });
       setGettingLocation(false);
       return;
@@ -44,34 +46,35 @@ export default function PostIssue() {
       async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        
+
         try {
           // Reverse geocoding using OpenStreetMap Nominatim
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
           );
           const data = await response.json();
-          
-          const address = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-          
+
+          const address =
+            data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
           setLocation({ lat, lng, address });
         } catch (error) {
-          console.error('Error getting address:', error);
-          setLocation({ 
-            lat, 
-            lng, 
-            address: `${lat.toFixed(6)}, ${lng.toFixed(6)}` 
+          console.error("Error getting address:", error);
+          setLocation({
+            lat,
+            lng,
+            address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
           });
         } finally {
           setGettingLocation(false);
         }
       },
       (error) => {
-        console.error('Error getting location:', error);
+        console.error("Error getting location:", error);
         toast({
-          title: t('error'),
-          description: 'Failed to get your location.',
-          variant: 'destructive'
+          title: t("error"),
+          description: "Failed to get your location.",
+          variant: "destructive",
         });
         setGettingLocation(false);
       }
@@ -80,90 +83,103 @@ export default function PostIssue() {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
+    if (!files.length) return;
+
     if (selectedFiles.length + files.length > 3) {
       toast({
-        title: t('error'),
-        description: 'You can upload maximum 3 images.',
-        variant: 'destructive'
+        title: t("error"),
+        description: "You can upload maximum 3 images.",
+        variant: "destructive",
       });
       return;
     }
-    
-    setSelectedFiles(prev => [...prev, ...files]);
+
+    const newFiles = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+
+    setSelectedFiles((prev) => [...prev, ...newFiles]);
+
+    // Reset input so same file can be selected again
+    e.currentTarget.value = "";
   };
 
   const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setSelectedFiles((prev) => {
+      // Revoke object URL to free memory
+      URL.revokeObjectURL(prev[index].preview);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
+  // Upload images to Supabase
   const uploadImages = async (): Promise<string[]> => {
     const uploadedPaths: string[] = [];
-    
-    for (const file of selectedFiles) {
-      const fileExt = file.name.split('.').pop();
+
+    for (const { file } of selectedFiles) {
+      const fileExt = file.name.split(".").pop();
       const fileName = `${user!.id}/${Date.now()}-${Math.random()}.${fileExt}`;
-      
+
       const { error } = await supabase.storage
-        .from('issue-images')
+        .from("issue-images")
         .upload(fileName, file);
-      
+
       if (error) {
+        console.error("Supabase upload error:", error);
         throw error;
       }
-      
+
       uploadedPaths.push(fileName);
     }
-    
+
     return uploadedPaths;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!title.trim()) {
       toast({
-        title: t('error'),
-        description: 'Please enter a title.',
-        variant: 'destructive'
+        title: t("error"),
+        description: "Please enter a title.",
+        variant: "destructive",
       });
       return;
     }
-    
+
     if (!user) return;
-    
+
     setLoading(true);
-    
+
     try {
       // Upload images first
       const imagePaths = selectedFiles.length > 0 ? await uploadImages() : [];
-      
+
       // Create issue
-      const { error } = await supabase
-        .from('issues')
-        .insert({
-          title: title.trim(),
-          images: imagePaths.length > 0 ? imagePaths : null,
-          location_lat: location?.lat || null,
-          location_lng: location?.lng || null,
-          location_address: location?.address || null,
-          created_by: user.id
-        });
-      
-      if (error) throw error;
-      
-      toast({
-        title: t('success'),
-        description: 'Issue posted successfully!'
+      const { error } = await supabase.from("issues").insert({
+        title: title.trim(),
+        images: imagePaths.length > 0 ? imagePaths : null,
+        location_lat: location?.lat || null,
+        location_lng: location?.lng || null,
+        location_address: location?.address || null,
+        created_by: user.id,
       });
-      
-      navigate('/');
-    } catch (error) {
-      console.error('Error posting issue:', error);
+
+      if (error) throw error;
+
       toast({
-        title: t('error'),
-        description: 'Failed to post issue. Please try again.',
-        variant: 'destructive'
+        title: t("success"),
+        description: "Issue posted successfully!",
+      });
+
+      navigate("/");
+    } catch (error) {
+      console.error("Error posting issue:", error);
+      toast({
+        title: t("error"),
+        description: "Failed to post issue. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -174,12 +190,12 @@ export default function PostIssue() {
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <Card>
         <CardHeader>
-          <CardTitle>{t('postIssue')}</CardTitle>
+          <CardTitle>{t("postIssue")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="title">{t('title')} *</Label>
+              <Label htmlFor="title">{t("title")} *</Label>
               <Input
                 id="title"
                 value={title}
@@ -188,14 +204,15 @@ export default function PostIssue() {
                 required
               />
             </div>
-            
+
             <div>
-              <Label>{t('images')} (Max 3)</Label>
+              <Label>{t("images")} (Max 3)</Label>
               <div className="mt-2">
                 <input
                   type="file"
                   accept="image/*"
                   multiple
+                  capture="environment"
                   onChange={handleFileSelect}
                   className="hidden"
                   id="image-upload"
@@ -211,13 +228,13 @@ export default function PostIssue() {
                     </p>
                   </div>
                 </Label>
-                
+
                 {selectedFiles.length > 0 && (
                   <div className="mt-4 grid grid-cols-3 gap-4">
-                    {selectedFiles.map((file, index) => (
+                    {selectedFiles.map((item, index) => (
                       <div key={index} className="relative">
                         <img
-                          src={URL.createObjectURL(file)}
+                          src={item.preview}
                           alt={`Preview ${index + 1}`}
                           className="w-full h-24 object-cover rounded-lg"
                         />
@@ -236,9 +253,9 @@ export default function PostIssue() {
                 )}
               </div>
             </div>
-            
+
             <div>
-              <Label>{t('location')}</Label>
+              <Label>{t("location")}</Label>
               <div className="mt-2">
                 {location ? (
                   <div className="flex items-start space-x-2 p-3 bg-muted rounded-lg">
@@ -267,27 +284,25 @@ export default function PostIssue() {
                     className="w-full"
                   >
                     <MapPin className="w-4 h-4 mr-2" />
-                    {gettingLocation ? 'Getting location...' : 'Get current location'}
+                    {gettingLocation
+                      ? "Getting location..."
+                      : "Get current location"}
                   </Button>
                 )}
               </div>
             </div>
-            
+
             <div className="flex space-x-4">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate('/')}
+                onClick={() => navigate("/")}
                 className="flex-1"
               >
-                {t('cancel')}
+                {t("cancel")}
               </Button>
-              <Button
-                type="submit"
-                disabled={loading}
-                className="flex-1"
-              >
-                {loading ? t('loading') : t('submit')}
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading ? t("loading") : t("submit")}
               </Button>
             </div>
           </form>
