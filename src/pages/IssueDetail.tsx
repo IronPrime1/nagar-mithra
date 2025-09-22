@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, MessageCircle, MapPin, ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowUp, MessageCircle, MapPin, ArrowLeft, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -310,7 +310,7 @@ export default function IssueDetail() {
               onClick={handleUpvote}
               className="flex items-center space-x-2"
             >
-              <Heart className={`w-4 h-4 ${userUpvoted ? 'fill-current' : ''}`} />
+              <ArrowUp className={`w-4 h-4 ${userUpvoted ? 'fill-current' : ''}`} />
               <span>{issue.upvotes_count}</span>
             </Button>
             
