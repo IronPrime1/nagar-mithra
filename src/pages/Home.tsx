@@ -145,20 +145,20 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-8 figtree-text">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Community Issues</h1>
+        <h1 className="text-3xl font-bold mb-2">{t('communityIssues')}</h1>
         <p className="text-muted-foreground">
-          Report and track civic issues in your area
+          {t('reportAndTrackCivicIssues')}
         </p>
       </div>
 
       {issues.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-muted-foreground mb-4">No issues posted yet</p>
-          <button 
+          <p className="text-muted-foreground mb-4">{t('noIssuesPostedYet')}</p>
+          <button
             onClick={() => navigate('/post')}
             className="text-primary hover:underline"
           >
-            Be the first to post an issue
+            {t('beTheFirstToPostAnIssue')}
           </button>
         </div>
       ) : (

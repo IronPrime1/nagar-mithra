@@ -34,6 +34,12 @@ const resources = {
       "comment": "Comment",
       "comments": "Comments",
       "addComment": "Add Comment",
+      "communityIssues": "Community Issues",
+      "reportAndTrackCivicIssues": "Report and track civic issues in your area",
+      "noIssuesPostedYet": "No issues posted yet",
+      "beTheFirstToPostAnIssue": "Be the first to post an issue",
+      "locationNotAvailable": "Location not available",
+      "by": "by",
       
       // Settings
       "language": "Language",
@@ -80,6 +86,12 @@ const resources = {
       "comment": "टिप्पणी",
       "comments": "टिप्पणियां",
       "addComment": "टिप्पणी जोड़ें",
+      "communityIssues": "सामुदायिक मुद्दे",
+      "reportAndTrackCivicIssues": "अपने क्षेत्र में नागरिक मुद्दों की रिपोर्ट करें और ट्रैक करें",
+      "noIssuesPostedYet": "अभी तक कोई समस्या पोस्ट नहीं की गई है",
+      "beTheFirstToPostAnIssue": "समस्या पोस्ट करने वाले पहले व्यक्ति बनें",
+      "locationNotAvailable": "स्थान उपलब्ध नहीं है",
+      "by": "द्वारा",
       
       // Settings
       "language": "भाषा",

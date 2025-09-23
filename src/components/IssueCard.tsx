@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { hi } from 'date-fns/locale';
 
 interface Issue {
   id: string;
@@ -31,7 +32,7 @@ interface IssueCardProps {
 }
 
 export const IssueCard = ({ issue, userUpvoted, onUpvoteChange, onClick }: IssueCardProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const [isUpvoting, setIsUpvoting] = useState(false);
@@ -102,14 +103,14 @@ export const IssueCard = ({ issue, userUpvoted, onUpvoteChange, onClick }: Issue
         <div className="flex items-center text-sm text-muted-foreground mb-2">
           <MapPin className="w-4 h-4 mr-1" />
           <span className="truncate">
-            {issue.location_address || 'Location not available'}
+            {issue.location_address || t('locationNotAvailable')}
           </span>
         </div>
         
         <div className="text-sm text-muted-foreground mb-3">
-          <span>by {issue.profiles.display_name || issue.profiles.email}</span>
+          <span>{t('by')} {issue.profiles.display_name || issue.profiles.email}</span>
           <span className="mx-1">•</span>
-          <span>{formatDistanceToNow(new Date(issue.created_at), { addSuffix: true })}</span>
+          <span>{formatDistanceToNow(new Date(issue.created_at), { addSuffix: true, locale: i18n.language === 'hi' ? hi : undefined })}</span>
         </div>
       </CardContent>
       
