@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowUp, MessageCircle, MapPin } from 'lucide-react';
+import { ArrowUp, MessageCircle, MapPin, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -18,9 +18,11 @@ interface Issue {
   upvotes_count: number;
   comments_count: number;
   created_by: string;
+  ai_summary?: string;
   profiles: {
     display_name: string | null;
     email: string;
+    role?: string;
   };
 }
 
@@ -36,6 +38,7 @@ export const IssueCard = ({ issue, userUpvoted, onUpvoteChange, onClick }: Issue
   const { user } = useAuth();
   const { toast } = useToast();
   const [isUpvoting, setIsUpvoting] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
 
   const handleUpvote = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -112,6 +115,33 @@ export const IssueCard = ({ issue, userUpvoted, onUpvoteChange, onClick }: Issue
           <span className="mx-1">•</span>
           <span>{formatDistanceToNow(new Date(issue.created_at), { addSuffix: true, locale: i18n.language === 'hi' ? hi : undefined })}</span>
         </div>
+
+        {issue.ai_summary && (
+          <div className="mt-3 pt-3 border-t border-border">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSummary((s) => !s);
+              }}
+              aria-expanded={showSummary}
+              className="flex items-center justify-between w-full text-sm text-primary"
+            >
+              <span className="font-semibold">Summary</span>
+              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showSummary ? 'rotate-180' : ''}`} />
+            </button>
+
+            <div
+              className={`mt-2 overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out ${
+                showSummary ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <CardDescription className="text-sm">
+                <p className="mt-1">{issue.ai_summary}</p>
+              </CardDescription>
+            </div>
+          </div>
+        )}
       </CardContent>
       
       <CardFooter className="pt-0 px-4 pb-4">

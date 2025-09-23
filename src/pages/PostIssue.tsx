@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Upload, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { generateIssueSummary } from '@/lib/gemini';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -102,6 +103,20 @@ export default function PostIssue() {
     setLoading(true);
     try {
       const imagePaths = selectedFiles.length > 0 ? await uploadImages() : [];
+
+      // Generate AI summary at post time (include image paths so the model can use visual context).
+      let aiSummary: string | null = null;
+      try {
+        aiSummary = await generateIssueSummary(
+          title.trim(),
+          location?.address || null,
+          imagePaths.length > 0 ? imagePaths : null
+        );
+      } catch (e) {
+        console.warn('AI summary generation failed, continuing without ai_summary', e);
+        aiSummary = null;
+      }
+
       const { error } = await supabase.from("issues").insert({
         title: title.trim(),
         images: imagePaths.length > 0 ? imagePaths : null,
@@ -109,6 +124,7 @@ export default function PostIssue() {
         location_lng: location?.lng || null,
         location_address: location?.address || null,
         created_by: user.id,
+        ai_summary: aiSummary,
       });
       if (error) throw error;
       toast({ title: t("success"), description: "Issue posted successfully!" });

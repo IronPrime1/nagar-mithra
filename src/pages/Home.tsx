@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { IssueCard } from '@/components/IssueCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { generateIssueSummary } from '@/lib/gemini';
 
 interface Issue {
   id: string;
@@ -16,9 +17,11 @@ interface Issue {
   upvotes_count: number;
   comments_count: number;
   created_by: string;
+  ai_summary?: string;
   profiles: {
     display_name: string | null;
     email: string;
+    role?: string;
   };
 }
 
@@ -90,20 +93,56 @@ export default function Home() {
 
   const fetchIssues = async () => {
     try {
+      // First, get the current user's role if they're logged in
+      let userRole = 'user';
+      if (user) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        
+        if (!profileError && profileData) {
+          userRole = profileData.role || 'user';
+        }
+      }
+
       const { data: issuesData, error } = await supabase
         .from('issues')
         .select(`
           *,
           profiles (
             display_name,
-            email
+            email,
+            role
           )
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      const sortedIssues = sortIssues(issuesData || []);
+      // Generate AI summaries for official users
+      let processedIssues = issuesData || [];
+      if (userRole === 'official' || userRole === 'admin') {
+        // Cache summaries during this fetch to avoid regenerating the same summary
+        const summaryCache: Record<string, string> = {};
+
+        processedIssues = await Promise.all(
+          processedIssues.map(async (issue: any) => {
+            if ((issue as any).ai_summary) return issue;
+
+            if (summaryCache[issue.id]) {
+              return { ...issue, ai_summary: summaryCache[issue.id] };
+            }
+
+            const summary = await generateIssueSummary(issue.title, issue.location_address, issue.images || null);
+            summaryCache[issue.id] = summary;
+            return { ...issue, ai_summary: summary };
+          })
+        );
+      }
+
+      const sortedIssues = sortIssues(processedIssues);
       setIssues(sortedIssues);
 
       // Fetch user upvotes
