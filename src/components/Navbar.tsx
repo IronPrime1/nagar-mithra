@@ -55,7 +55,7 @@ export const Navbar = () => {
             to="/"
             className="text-2xl font-bold text-primary hover:text-primary/80 transition flex items-center space-x-2"
           >
-            <img src="logo.png" className="w-10 h-10" />NagarMithra
+            <img src="logo.png" className="w-10 h-10" />FixMyCity
           </Link>
 
           {/* Desktop Menu */}
